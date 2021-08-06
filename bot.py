@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 
 # ----------
 
+# Token
+TOKEN = os.getenv("TELEBOT")
+PORT = int(os.environ.get("PORT", 5000))
+
 # Stages
 VIDEOBUBBLE, EMOJI, RESTAURANT, CITY, CONFIRMATION, INLINEBUTTON = range(6)
 
@@ -511,7 +515,7 @@ def cancel(update: Update, _: CallbackContext) -> int:
 def main() -> None:
     """Run the bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater(os.getenv("TELEBOT"))
+    updater = Updater(TOKEN)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -578,7 +582,9 @@ def main() -> None:
     dispatcher.add_handler(cancel_handler)
 
     # Start the Bot
-    updater.start_polling()
+    # updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
+    updater.bot.setWebhook("https://thatbubblebot.herokuapp.com/" + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
