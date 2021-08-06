@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 # Token
 TOKEN = os.getenv("TELEBOT")
-PORT = int(os.environ.get("PORT", 5000))
+PORT = int(os.environ.get("PORT", 80))
 
 # Stages
 VIDEOBUBBLE, EMOJI, RESTAURANT, CITY, CONFIRMATION, INLINEBUTTON = range(6)
