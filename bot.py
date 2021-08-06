@@ -1,4 +1,4 @@
-"""Test bot script."""
+"""@FoodieFunBot script."""
 import os
 
 import logging
@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # Token
 TOKEN = os.getenv("TELEBOT")
 PORT = int(os.environ.get("PORT", 5000))
+CHANNELHANDLE = str(os.getenv("CHANNELHANDLE"))
 
 # Stages
 VIDEOBUBBLE, EMOJI, RESTAURANT, CITY, CONFIRMATION, INLINEBUTTON = range(6)
@@ -404,13 +405,13 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
         caption=(
             "Hooray, it's sent!\n\n"
             "- To send a video bubble again, use <b>/start</b>.\n"
-            "- Or, return to <b>@bubblestest</b> channel."
+            f"- Or, return to <b>{CHANNELHANDLE}</b> channel."
         ),
         parse_mode=telegram.ParseMode.HTML,
     )
 
     context.bot.send_photo(
-        chat_id="@bubblestest",
+        chat_id=CHANNELHANDLE,
         photo=context.user_data["video_bubble"]["file_id"],
         caption=(
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
@@ -499,8 +500,8 @@ def cancel(update: Update, _: CallbackContext) -> int:
     update.message.reply_text(
         (
             "See you next time!\n\n"
-            "- To send a video bubble again, use <b>/start</b>.\n"
-            "- Or, return to <b>@bubblestest</b> channel."
+            "- To send another photo review, use <b>/start</b>.\n"
+            f"- Or, return to <b>{CHANNELHANDLE}</b> channel."
         ),
         parse_mode=telegram.ParseMode.HTML,
         reply_markup=ReplyKeyboardRemove(),
@@ -588,9 +589,9 @@ def main() -> None:
         listen="0.0.0.0",
         port=int(PORT),
         url_path=TOKEN,
-        webhook_url="https://thatbubblebot.herokuapp.com/" + TOKEN,
+        webhook_url="https://foodiefunbot.herokuapp.com/" + TOKEN,
     )
-    # updater.bot.setWebhook("https://thatbubblebot.herokuapp.com/" + TOKEN)
+    # updater.bot.setWebhook("https://foodiefunbot.herokuapp.com/" + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
