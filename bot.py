@@ -404,7 +404,7 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
     query.edit_message_caption(
         caption=(
             "Hooray, it's sent!\n\n"
-            "- To send a video bubble again, use <b>/start</b>.\n"
+            "- To send another photo review, use <b>/start</b>.\n"
             f"- Or, return to <b>{CHANNELHANDLE}</b> channel."
         ),
         parse_mode=telegram.ParseMode.HTML,
