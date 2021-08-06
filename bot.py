@@ -588,7 +588,7 @@ def main() -> None:
         listen="0.0.0.0",
         port=int(PORT),
         url_path=TOKEN,
-        webhook_url="https://yourherokuappname.herokuapp.com/" + TOKEN,
+        webhook_url="https://thatbubblebot.herokuapp.com/" + TOKEN,
     )
     # updater.bot.setWebhook("https://thatbubblebot.herokuapp.com/" + TOKEN)
 
