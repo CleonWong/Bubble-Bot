@@ -583,7 +583,7 @@ def main() -> None:
 
     # Start the Bot
     # updater.start_polling()
-    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
+    updater.start_webhook(listen="0.0.0.0", port=80, url_path=TOKEN)
     updater.bot.setWebhook("https://thatbubblebot.herokuapp.com/" + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
