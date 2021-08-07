@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 # Token
 TOKEN = os.getenv("TELEBOT")
+TELEBOTNAME = os.getenv("TELEBOTNAME")
 PORT = int(os.environ.get("PORT", 5000))
 CHANNELHANDLE = str(os.getenv("CHANNELHANDLE"))
 
@@ -354,7 +355,7 @@ def confirmation(update: Update, context: CallbackContext) -> int:
                 f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
                 f"<b>City:</b> {context.user_data['city']}\n\n"
                 f"Shared by {context.user_data['first_name']}.\n\n"
-                "<i>Share your own foodie experience using @ThatBubbleBot!</i>\n"
+                f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
                 "----------\n\n"
                 "☝🏻️ This is how your post will look."
             ),
@@ -418,7 +419,7 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
             f"<b>City:</b> {context.user_data['city']}\n\n"
             f"Shared by {context.user_data['first_name']}.\n\n"
-            "<i>Share your own foodie experience using @ThatBubbleBot!</i>"
+            f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>"
         ),
         parse_mode=telegram.ParseMode.HTML,
     )
