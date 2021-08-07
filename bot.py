@@ -79,6 +79,7 @@ def start(update: Update, context: CallbackContext) -> int:
     logger.info("User %s started the conversation.", user.first_name)
 
     # Store user's replies context.user_data
+    context.user_data["username"] = user.username
     context.user_data["first_name"] = user.first_name
     context.user_data["last_name"] = user.last_name
     context.user_data["video_bubble"] = None
@@ -354,7 +355,7 @@ def confirmation(update: Update, context: CallbackContext) -> int:
                 f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
                 f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
                 f"<b>City:</b> {context.user_data['city']}\n\n"
-                f"Shared by {context.user_data['first_name']}.\n\n"
+                f"Shared by @{context.user_data['username']}.\n\n"
                 f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
                 "----------\n\n"
                 "☝🏻️ This is how your post will look."
@@ -418,7 +419,7 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
             f"<b>City:</b> {context.user_data['city']}\n\n"
-            f"Shared by {context.user_data['first_name']}.\n\n"
+            f"Shared by @{context.user_data['username']}.\n\n"
             f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>"
         ),
         parse_mode=telegram.ParseMode.HTML,
