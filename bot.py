@@ -95,7 +95,6 @@ def start(update: Update, context: CallbackContext) -> int:
             # "----------\n"
             "👋🏻 Hello! Want to share your foodie experience?\n\n"
             "To begin, snap and send over a photo 📸.\n\n"
-            "If you're stuck, use the <b>/help</b> command."
         ),
         parse_mode=telegram.ParseMode.HTML,
         reply_markup=ReplyKeyboardRemove(),
@@ -468,8 +467,7 @@ def unknown(update: Update, _: CallbackContext) -> None:
     update.message.reply_text(
         (
             "Sorry, I don't understand that command. "
-            "Click on <b>/help</b> to see all the available commands.\n\n"
-            "Otherwise, use <b>/start</b> to send a video bubble."
+            "Use <b>/start</b> to share your photo review."
         ),
         parse_mode=telegram.ParseMode.HTML,
         reply_markup=ReplyKeyboardRemove(),
@@ -569,7 +567,6 @@ def main() -> None:
         fallbacks=[
             CommandHandler(command="start", callback=start),
             CommandHandler(command="cancel", callback=cancel),
-            CommandHandler(command="help", callback=help_command),
             MessageHandler(filters=Filters.command, callback=unknown),
         ],
     )
@@ -579,8 +576,6 @@ def main() -> None:
 
     unknown_handler = MessageHandler(filters=Filters.command, callback=unknown)
     dispatcher.add_handler(unknown_handler)
-    help_handler = CommandHandler(command="help", callback=help_command)
-    dispatcher.add_handler(help_handler)
     cancel_handler = CommandHandler(command="cancel", callback=cancel)
     dispatcher.add_handler(cancel_handler)
 
