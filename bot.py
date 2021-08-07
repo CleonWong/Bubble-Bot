@@ -35,6 +35,7 @@ TOKEN = os.getenv("TELEBOT")
 TELEBOTNAME = os.getenv("TELEBOTNAME")
 PORT = int(os.environ.get("PORT", 5000))
 CHANNELHANDLE = str(os.getenv("CHANNELHANDLE"))
+WEBHOOKURL = str(os.getenv("WEBHOOKURL"))
 
 # Stages
 VIDEOBUBBLE, EMOJI, RESTAURANT, CITY, CONFIRMATION, INLINEBUTTON = range(6)
@@ -585,9 +586,9 @@ def main() -> None:
         listen="0.0.0.0",
         port=int(PORT),
         url_path=TOKEN,
-        webhook_url="https://foodiefunbot.herokuapp.com/" + TOKEN,
+        webhook_url=WEBHOOKURL + TOKEN,
     )
-    # updater.bot.setWebhook("https://foodiefunbot.herokuapp.com/" + TOKEN)
+    # updater.bot.setWebhook(WEBHOOKURL + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
