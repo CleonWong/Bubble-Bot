@@ -349,13 +349,19 @@ def confirmation(update: Update, context: CallbackContext) -> int:
         # Turns the `keyboard` list into an actual inlin keyboard.
         reply_markup = InlineKeyboardMarkup(keyboard)
 
+        # Check if username exists:
+        if context.user_data["username"] is None:
+            context.user_data["name_to_show"] = context.user_data["first_name"]
+        else:
+            context.user_data["name_to_show"] = "@" + context.user_data["username"]
+
         update.message.reply_photo(
             photo=context.user_data["video_bubble"]["file_id"],
             caption=(
                 f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
                 f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
                 f"<b>City:</b> {context.user_data['city']}\n\n"
-                f"Shared by @{context.user_data['username']}.\n\n"
+                f"Shared by {context.user_data['name_to_show']}.\n\n"
                 f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
                 "----------\n\n"
                 "☝🏻️ This is how your post will look."
@@ -419,7 +425,7 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
             f"<b>City:</b> {context.user_data['city']}\n\n"
-            f"Shared by @{context.user_data['username']}.\n\n"
+            f"Shared by {context.user_data['name_to_show']}.\n\n"
             f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>"
         ),
         parse_mode=telegram.ParseMode.HTML,
