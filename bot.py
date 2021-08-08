@@ -11,6 +11,7 @@ from telegram import (
     InlineKeyboardMarkup,
     Update,
 )
+
 from telegram.ext import (
     Updater,
     CallbackContext,
@@ -410,12 +411,13 @@ def confirmation_after_no_comments(update: Update, context: CallbackContext) -> 
     else:
         context.user_data["name_to_show"] = "@" + context.user_data["username"]
 
-    update.message.reply_photo(
+    context.bot.send_photo(
+        chat_id=update.effective_chat.id,
         photo=context.user_data["video_bubble"]["file_id"],
         caption=(
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
-            f"<b>City:</b> {context.user_data['city']}\n\n"
+            f"<b>City:</b> {context.user_data['city']}\n"
             f"<b>Comments (optional):</b> {context.user_data['comments']}\n\n"
             f"Shared by {context.user_data['name_to_show']}.\n\n"
             f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
@@ -454,6 +456,7 @@ def yes_comments(update: Update, context: CallbackContext) -> int:
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Send me your comments!",
+        reply_markup=ReplyKeyboardRemove(),
     )
 
     return YESCOMMENTSCONFIRMATION
@@ -506,7 +509,7 @@ def confirmation_after_yes_comments(update: Update, context: CallbackContext) ->
         caption=(
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
-            f"<b>City:</b> {context.user_data['city']}\n\n"
+            f"<b>City:</b> {context.user_data['city']}\n"
             f"<b>Comments (optional):</b> {context.user_data['comments']}\n\n"
             f"Shared by {context.user_data['name_to_show']}.\n\n"
             f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
@@ -571,7 +574,8 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
         caption=(
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
-            f"<b>City:</b> {context.user_data['city']}\n\n"
+            f"<b>City:</b> {context.user_data['city']}\n"
+            f"<b>Comments (optional):</b> {context.user_data['comments']}\n\n"
             f"Shared by {context.user_data['name_to_show']}.\n\n"
             f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>"
         ),
@@ -726,7 +730,7 @@ def main() -> None:
                     pattern="^" + "no_comments" + "$",
                 ),
                 CallbackQueryHandler(
-                    callback=confirmation_after_yes_comments,
+                    callback=yes_comments,
                     pattern="^" + "yes_comments" + "$",
                 ),
                 CallbackQueryHandler(callback=resubmit, pattern="^" + "resubmit" + "$"),
@@ -749,13 +753,13 @@ def main() -> None:
     dispatcher.add_handler(cancel_handler)
 
     # Start the Bot
-    # updater.start_polling()
-    updater.start_webhook(
-        listen="0.0.0.0",
-        port=int(PORT),
-        url_path=TOKEN,
-        webhook_url=WEBHOOKURL + TOKEN,
-    )
+    updater.start_polling()
+    # updater.start_webhook(
+    #     listen="0.0.0.0",
+    #     port=int(PORT),
+    #     url_path=TOKEN,
+    #     webhook_url=WEBHOOKURL + TOKEN,
+    # )
     # updater.bot.setWebhook(WEBHOOKURL + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
