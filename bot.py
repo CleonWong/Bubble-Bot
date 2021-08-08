@@ -11,6 +11,7 @@ from telegram import (
     InlineKeyboardMarkup,
     Update,
 )
+
 from telegram.ext import (
     Updater,
     CallbackContext,
@@ -38,7 +39,16 @@ CHANNELHANDLE = str(os.getenv("CHANNELHANDLE"))
 WEBHOOKURL = str(os.getenv("WEBHOOKURL"))
 
 # Stages
-VIDEOBUBBLE, EMOJI, RESTAURANT, CITY, CONFIRMATION, INLINEBUTTON = range(6)
+(
+    VIDEOBUBBLE,
+    EMOJI,
+    RESTAURANT,
+    CITY,
+    YESNOCOMMENTS,
+    NOCOMMENTSCONFIRMATION,
+    YESCOMMENTSCONFIRMATION,
+    INLINEBUTTON,
+) = range(8)
 
 # Keyboards
 start_keyboard = ["Send video bubble!"]
@@ -86,6 +96,7 @@ def start(update: Update, context: CallbackContext) -> int:
     context.user_data["emoji"] = None
     context.user_data["restaurant"] = None
     context.user_data["city"] = None
+    context.user_data["comments"] = None
 
     update.message.reply_text(
         (
@@ -296,12 +307,165 @@ def send_city(update: Update, context: CallbackContext) -> int:
             reply_markup=cities_keyboard_markup,
         )
 
-        return CONFIRMATION
+        return YESNOCOMMENTS
 
 
-def confirmation(update: Update, context: CallbackContext) -> int:
+def yes_no_comments(update: Update, context: CallbackContext) -> int:
     """
-    To seek confirmation after receiving restaurant name.
+    To ask if user wants to leave any comments using inline keyboard, after
+    getting city info.
+
+    Parameters
+    ----------
+    update : Update
+        [description]
+    context : CallbackContext
+        [description]
+
+    Returns
+    -------
+    int
+        [description]
+    """
+    user = update.message.from_user
+    logger.info("Received city from %s: %s", user.first_name, update.message.text)
+
+    # Text from send_city command.
+    text = update.message.text
+
+    # Check that city is a valid city.
+    if text not in cities:
+
+        update.message.reply_text(
+            (
+                f"Sorry, {text} is invalid at the moment. Please try again!\n\n"
+                "Which city was your meal from? "
+            ),
+            reply_markup=cities_keyboard_markup,
+        )
+
+        return YESNOCOMMENTS
+
+    elif text in cities:
+
+        # Store send_city reply.
+        context.user_data["city"] = text.strip()
+
+        keyboard = [
+            [
+                InlineKeyboardButton(text="Nope", callback_data="no_comments"),
+                InlineKeyboardButton(text="Yes", callback_data="yes_comments"),
+            ],
+        ]
+
+        # Turns the `keyboard` list into an actual inlin keyboard.
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        update.message.reply_text(
+            ("Any additional comments about your food?"),
+            parse_mode=telegram.ParseMode.HTML,
+            reply_markup=reply_markup,
+        )
+
+        return INLINEBUTTON
+
+
+def confirmation_after_no_comments(update: Update, context: CallbackContext) -> int:
+    """
+    To seek confirmation after:
+    1. User clicked on "Nope" inline button.
+
+    Parameters
+    ----------
+    update : Update
+        [description]
+    context : CallbackContext
+        [description]
+
+    Returns
+    -------
+    int
+        [description]
+    """
+    query = update.callback_query
+    query.answer()
+
+    # Deletes the message that asked if have any comments.
+    query.delete_message()
+
+    context.user_data["comments"] = "No comments."
+
+    keyboard = [
+        [
+            InlineKeyboardButton(text="Resubmit", callback_data="resubmit"),
+            InlineKeyboardButton(text="Send it 👍🏻", callback_data="send"),
+        ],
+    ]
+
+    # Turns the `keyboard` list into an actual inlin keyboard.
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Check if username exists:
+    if context.user_data["username"] is None:
+        context.user_data["name_to_show"] = context.user_data["first_name"]
+    else:
+        context.user_data["name_to_show"] = "@" + context.user_data["username"]
+
+    context.bot.send_photo(
+        chat_id=update.effective_chat.id,
+        photo=context.user_data["video_bubble"]["file_id"],
+        caption=(
+            f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
+            f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
+            f"<b>City:</b> {context.user_data['city']}\n"
+            f"<b>Comments (optional):</b> {context.user_data['comments']}\n\n"
+            f"Shared by {context.user_data['name_to_show']}.\n\n"
+            f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
+            "----------\n\n"
+            "☝🏻️ This is how your post will look."
+        ),
+        parse_mode=telegram.ParseMode.HTML,
+        reply_markup=reply_markup,
+    )
+
+    return INLINEBUTTON
+
+
+def yes_comments(update: Update, context: CallbackContext) -> int:
+    """
+    Ask for comments after user clicks on "Yes" inline keyboard.
+
+
+    Parameters
+    ----------
+    update : Update
+        [description]
+    context : CallbackContext
+        [description]
+
+    Returns
+    -------
+    int
+        [description]
+    """
+    query = update.callback_query
+    query.answer()
+
+    query.delete_message()
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Send me your comments!",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+    return YESCOMMENTSCONFIRMATION
+
+
+def confirmation_after_yes_comments(update: Update, context: CallbackContext) -> int:
+    """
+    To seek confirmation after:
+    1. User clicked on "Yes" inline button then entered comments.
 
     Parameters
     ----------
@@ -316,61 +480,47 @@ def confirmation(update: Update, context: CallbackContext) -> int:
         [description]
     """
     user = update.message.from_user
-    logger.info("Received city from %s: %s", user.first_name, update.message.text)
+    logger.info("Received comments from %s: %s", user.first_name, update.message.text)
 
-    # Text from send_city command.
+    # Text from yes_comments.
     text = update.message.text
 
-    # Check that restaurant name contains at least an alphanumeric character.
-    if text not in cities:
+    # Store comments reply.
+    context.user_data["comments"] = text.strip()
 
-        update.message.reply_text(
-            (
-                f"Sorry, {text} is invalid at the moment. Please try again!\n\n"
-                "Which city was your meal from? "
-            ),
-            reply_markup=cities_keyboard_markup,
-        )
+    keyboard = [
+        [
+            InlineKeyboardButton(text="Resubmit", callback_data="resubmit"),
+            InlineKeyboardButton(text="Send it 👍🏻", callback_data="send"),
+        ],
+    ]
 
-        return CONFIRMATION
+    # Turns the `keyboard` list into an actual inlin keyboard.
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
-    elif text in cities:
+    # Check if username exists:
+    if context.user_data["username"] is None:
+        context.user_data["name_to_show"] = context.user_data["first_name"]
+    else:
+        context.user_data["name_to_show"] = "@" + context.user_data["username"]
 
-        # Store send_city reply.
-        context.user_data["city"] = text.strip()
+    update.message.reply_photo(
+        photo=context.user_data["video_bubble"]["file_id"],
+        caption=(
+            f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
+            f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
+            f"<b>City:</b> {context.user_data['city']}\n"
+            f"<b>Comments (optional):</b> {context.user_data['comments']}\n\n"
+            f"Shared by {context.user_data['name_to_show']}.\n\n"
+            f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
+            "----------\n\n"
+            "☝🏻️ This is how your post will look."
+        ),
+        parse_mode=telegram.ParseMode.HTML,
+        reply_markup=reply_markup,
+    )
 
-        keyboard = [
-            [
-                InlineKeyboardButton(text="Resubmit", callback_data="resubmit"),
-                InlineKeyboardButton(text="Send it 👍🏻", callback_data="send"),
-            ],
-        ]
-
-        # Turns the `keyboard` list into an actual inlin keyboard.
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        # Check if username exists:
-        if context.user_data["username"] is None:
-            context.user_data["name_to_show"] = context.user_data["first_name"]
-        else:
-            context.user_data["name_to_show"] = "@" + context.user_data["username"]
-
-        update.message.reply_photo(
-            photo=context.user_data["video_bubble"]["file_id"],
-            caption=(
-                f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
-                f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
-                f"<b>City:</b> {context.user_data['city']}\n\n"
-                f"Shared by {context.user_data['name_to_show']}.\n\n"
-                f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>\n"
-                "----------\n\n"
-                "☝🏻️ This is how your post will look."
-            ),
-            parse_mode=telegram.ParseMode.HTML,
-            reply_markup=reply_markup,
-        )
-
-        return INLINEBUTTON
+    return INLINEBUTTON
 
 
 def resubmit(update: Update, context: CallbackQueryHandler) -> int:
@@ -424,7 +574,8 @@ def send_and_end(update: Update, context: CallbackContext) -> int:
         caption=(
             f"<b>Thoughts:</b> {context.user_data['emoji']}\n"
             f"<b>Restaurant:</b> {context.user_data['restaurant']} 📍\n"
-            f"<b>City:</b> {context.user_data['city']}\n\n"
+            f"<b>City:</b> {context.user_data['city']}\n"
+            f"<b>Comments (optional):</b> {context.user_data['comments']}\n\n"
             f"Shared by {context.user_data['name_to_show']}.\n\n"
             f"<i>Share your own foodie experience using {TELEBOTNAME}!</i>"
         ),
@@ -561,13 +712,27 @@ def main() -> None:
                     callback=send_city,
                 )
             ],
-            CONFIRMATION: [
+            YESNOCOMMENTS: [
                 MessageHandler(
                     filters=Filters.text & ~Filters.command,
-                    callback=confirmation,
+                    callback=yes_no_comments,
+                )
+            ],
+            YESCOMMENTSCONFIRMATION: [
+                MessageHandler(
+                    filters=Filters.text & ~Filters.command,
+                    callback=confirmation_after_yes_comments,
                 )
             ],
             INLINEBUTTON: [
+                CallbackQueryHandler(
+                    callback=confirmation_after_no_comments,
+                    pattern="^" + "no_comments" + "$",
+                ),
+                CallbackQueryHandler(
+                    callback=yes_comments,
+                    pattern="^" + "yes_comments" + "$",
+                ),
                 CallbackQueryHandler(callback=resubmit, pattern="^" + "resubmit" + "$"),
                 CallbackQueryHandler(callback=send_and_end, pattern="^" + "send" + "$"),
             ],
