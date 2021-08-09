@@ -753,13 +753,13 @@ def main() -> None:
     dispatcher.add_handler(cancel_handler)
 
     # Start the Bot
-    # updater.start_polling()
-    updater.start_webhook(
-        listen="0.0.0.0",
-        port=int(PORT),
-        url_path=TOKEN,
-        webhook_url=WEBHOOKURL + TOKEN,
-    )
+    updater.start_polling()
+    # updater.start_webhook(
+    #     listen="0.0.0.0",
+    #     port=int(PORT),
+    #     url_path=TOKEN,
+    #     webhook_url=WEBHOOKURL + TOKEN,
+    # )
     # updater.bot.setWebhook(WEBHOOKURL + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
